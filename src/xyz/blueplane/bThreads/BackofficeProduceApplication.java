@@ -1,15 +1,18 @@
 package xyz.blueplane.bThreads;
 
+import static bp.BProgramControls.globalRunMode;
 import static bp.BProgram.labelNextVerificationState;
-import static bp.BProgram.markNextVerificationStateAsHot;
+import static bp.BProgram.markNextVerificationStateAsBad;
 import static bp.eventSets.EventSetConstants.none;
-
-
+import static bp.eventSets.EventSetConstants.all;
 import xyz.blueplane.events.ApplicationCreation;
 import xyz.blueplane.events.BackofficeApplicationSave;
 import xyz.blueplane.events.ApplicationCommit;
 import xyz.blueplane.events.CoreQueueMessagePublish;
+import bp.BProgram;
 import bp.BThread;
+import bp.RunMode;
+import bp.eventSets.EventsOfClass;
 import bp.exceptions.BPJException;
 /**
  * A scenario that make the process of application creation in the backoffice (save application in backoffice db
@@ -29,7 +32,7 @@ public class BackofficeProduceApplication extends BThread {
 		labelNextVerificationState("0");
 
 		// Request for the application creation event
-		bp.bSync(new ApplicationCreation(application), none, none);
+		bp.bSync(none, new EventsOfClass(ApplicationCreation.class), none);
 
 		//markNextVerificationStateAsHot();
 		labelNextVerificationState("1");
@@ -44,6 +47,11 @@ public class BackofficeProduceApplication extends BThread {
 
 		//markNextVerificationStateAsHot();
 		labelNextVerificationState("3");
+		// Forces backtracking after all b-threads reach the next state
+		if (globalRunMode == RunMode.MCSAFETY || globalRunMode == RunMode.MCLIVENESS) {
+			//bp.pruneAtNextVerificationState();
+		}
+		
 		// Request the Backoffice DB commit the applicaton
 		bp.bSync(new ApplicationCommit(application), none, none);
 

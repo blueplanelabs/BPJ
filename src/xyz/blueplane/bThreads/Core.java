@@ -1,15 +1,17 @@
 package xyz.blueplane.bThreads;
 
+import static bp.BProgramControls.globalRunMode;
 import static bp.BProgram.labelNextVerificationState;
 import static bp.BProgram.markNextVerificationStateAsHot;
 import static bp.eventSets.EventSetConstants.none;
+import static bp.eventSets.EventSetConstants.all;
+
 import bp.eventSets.EventsOfClass;
-
-
 import xyz.blueplane.events.CoreQueueMessagePublish;
 import xyz.blueplane.events.CoreApplicationSave;
 import xyz.blueplane.events.BackofficeQueueMessagePublish;
 import bp.BThread;
+import bp.RunMode;
 import bp.exceptions.BPJException;
 
 /**
@@ -40,6 +42,11 @@ public class Core extends BThread {
 
 		//markNextVerificationStateAsHot();
 		labelNextVerificationState("2");
+		// Forces backtracking after all b-threads reach the next state
+		if (globalRunMode == RunMode.MCSAFETY || globalRunMode == RunMode.MCLIVENESS) {
+			//bp.pruneAtNextVerificationState("Core completed");
+		}
+		
 		// Request the Backoffice queue publish the message
 		bp.bSync(new BackofficeQueueMessagePublish(application, "CREATE_APPLICATION"), none, none);
 

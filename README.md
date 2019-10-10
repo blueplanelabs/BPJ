@@ -1,3 +1,3 @@
-# BPJ
+# ContestiaBPJ
 
-Repository to try Behavioral Programming
+Repository to try Behavioral Programming with an example
